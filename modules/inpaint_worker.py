@@ -22,7 +22,10 @@ class InpaintHead(torch.nn.Module):
 
 current_task = None
 
-
+def inpaint_with_mask(image_path, mask_path, prompt):
+    # Load image and mask
+    image = Image.open(image_path)
+    mask = Image.open(mask_path).convert("L")
 def box_blur(x, k):
     x = Image.fromarray(x)
     x = x.filter(ImageFilter.BoxBlur(k))
