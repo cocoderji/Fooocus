@@ -330,6 +330,35 @@ class Image(
             return client_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
+import gradio as gr
+from PIL import Image
+import numpy as np
+
+# Load SAM predictor
+predictor = load_sam_model()
+
+def handle_click(image, evt: gr.SelectData):
+    x, y = evt.index
+    input_point = np.array([[x, y]])
+    input_label = np.array([1])
+
+    predictor.set_image(np.array(image))
+    masks, scores, _ = predictor.predict(
+        point_coords=input_point,
+        point_labels=input_label,
+        multimask_output=False,
+    )
+    mask = masks[0]
+    return Image.fromarray((mask * 255).astype(np.uint8))
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        image_input = gr.Image(label="Click to Select Object", type="pil")
+        mask_output = gr.Image(label="Generated Mask", type="pil")
+
+    image_input.select(fn=handle_click, inputs=[image_input], outputs=mask_output)
+
+demo.launch()
 
     def set_interpret_parameters(self, segments: int = 16):
         """
